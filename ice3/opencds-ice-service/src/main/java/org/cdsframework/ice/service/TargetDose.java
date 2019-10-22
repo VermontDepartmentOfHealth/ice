@@ -47,12 +47,15 @@ public class TargetDose {
 	private int administeredShotNumberInSeries;
 	private Date administrationDate;
 	private int doseNumberInSeries;
+	private int doseNumberCount;
 	private boolean isPrimarySeriesShot;
 	private boolean isValid;
 	private boolean isShotIgnored;
 	private boolean hasBeenEvaluated;
 	private boolean preEvaluationCheckCompleted;
 	private boolean postEvaluationCheckCompleted;
+	private boolean duplicateShotSameDayEvaluationOrderCompleted;
+	private boolean duplicateShotSameDayCheckCompleted;
 	private DoseStatus status;
 	private HashSet<String> validReasons;
 	private HashSet<String> acceptedReasons;
@@ -85,6 +88,7 @@ public class TargetDose {
 		administeredShotNumberInSeries = 0;
 		administrationDate = pAdministrationDate;
 		doseNumberInSeries = 1;
+		doseNumberCount = 1;
 		status = DoseStatus.EVALUATION_NOT_STARTED;
 		validReasons = new HashSet<String>();
 		acceptedReasons = new HashSet<String>();
@@ -97,6 +101,8 @@ public class TargetDose {
 		hasBeenEvaluated = false;
 		preEvaluationCheckCompleted = false;
 		postEvaluationCheckCompleted = false;
+		duplicateShotSameDayEvaluationOrderCompleted = false;
+		duplicateShotSameDayCheckCompleted = false;
 	}
 
 	public void addDoseRuleProcessed(String ruleName) {
@@ -252,6 +258,22 @@ public class TargetDose {
 	}
 
 	/**
+	 * Returns the valid shot number in the series (relative to all other valid shots). 
+	 * @return valid dose number in series
+	 */
+	public int getDoseNumberCount() {
+		return doseNumberCount;
+	}
+	
+	/**
+	 * Likely to only be called by the TargetSeries that contains this administered dose
+	 * @param pDoseNumber
+	 */
+	public void setDoseNumberCount(int pDoseNumber) {
+		this.doseNumberCount = pDoseNumber;
+	}
+	
+	/**
 	 * Returns whether or not this shot is a part of the primary series
 	 */
 	public boolean isPrimarySeriesShot() {
@@ -308,6 +330,22 @@ public class TargetDose {
 	
 	public void setPostEvaluationCheckCompleted(boolean truefalse) {
 		this.postEvaluationCheckCompleted = truefalse;
+	}
+	
+	public boolean isDuplicateShotSameDayEvaluationOrderCompleted() {
+		return duplicateShotSameDayEvaluationOrderCompleted;
+	}
+	
+	public void setDuplicateShotSameDayEvaluationOrderCompleted(boolean truefalse) {
+		this.duplicateShotSameDayEvaluationOrderCompleted = truefalse;
+	}
+	
+	public boolean isDuplicateShotSameDayCheckCompleted() {
+		return duplicateShotSameDayCheckCompleted;
+	}
+	
+	public void setDuplicateShotSameDayCheckCompleted(boolean truefalse) {
+		this.duplicateShotSameDayCheckCompleted = truefalse;
 	}
 
 	public Vaccine getAdministeredVaccine() {
@@ -424,11 +462,12 @@ public class TargetDose {
 	public String toString() {
 		
 		String s = "TargetDose [uniqueId=" + uniqueId + ", doseId=" + doseId + ", administeredShotNumber=" + administeredShotNumberInSeries + 
-				"; doseNumber=" + doseNumberInSeries + ", vaccine=" + administeredVaccine.getCdsConceptName() + 
+				"; doseNumber=" + doseNumberInSeries + ", doseNumberCount=" + doseNumberCount + "vaccine=" + administeredVaccine.getCdsConceptName() + ", isPrimarySeriesShot=" + isPrimarySeriesShot() + 
 				"; vaccineComponent=" + vaccineComponent.getCdsConceptName() + ", administrationDate=" + administrationDate + ", status=" + status + 
 				"; isValid=" + isValid + "; preEvaluationCheck=" + preEvaluationCheckCompleted + "; isLiveVirus: " + this.getAdministeredVaccine().isLiveVirusVaccine() + 
 				"; isCombinationVaccine: " + this.getAdministeredVaccine().isCombinationVaccine() + "; componentIsLiveVirus: " + this.getVaccineComponent().isLiveVirusVaccine() + 
-				"; isAdjuvant: " + this.getAdministeredVaccine().isSelectAdjuvantProduct() + "; componentIsAdjuvant: " + this.getVaccineComponent().isSelectAdjuvantProduct();
+				"; isAdjuvant: " + this.getAdministeredVaccine().isSelectAdjuvantProduct() + "; componentIsAdjuvant: " + this.getVaccineComponent().isSelectAdjuvantProduct() +
+				"; isDuplicateShotSameDayCheckCompleted: " + this.isDuplicateShotSameDayCheckCompleted() + ", isUnspecifiedFormulation(): " + this.getVaccineComponent().isUnspecifiedFormulation();
 		int i=0;
 		for (String reason : validReasons) {
 			if (i == 0)

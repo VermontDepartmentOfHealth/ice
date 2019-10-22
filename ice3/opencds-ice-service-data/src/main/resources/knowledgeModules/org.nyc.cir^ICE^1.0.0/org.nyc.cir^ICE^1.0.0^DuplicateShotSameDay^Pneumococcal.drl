@@ -61,10 +61,11 @@ rule "Duplicate Shot/Same Day Overview Abstract Pneumococcal Rule #5: Make note 
 	auto-focus true
 	salience 10
 	when
-		$td: TargetDose(associatedTargetSeries.vaccineGroup == "VACCINE_GROUP_CONCEPT.750", hasBeenEvaluated == true, status == DoseStatus.VALID, $tdstatus : status, vaccineComponent.isUnspecifiedFormulation() == false, 
+		$td: TargetDose(associatedTargetSeries.vaccineGroup == "VACCINE_GROUP_CONCEPT.750", hasBeenEvaluated == true, status == DoseStatus.VALID, vaccineComponent.isUnspecifiedFormulation() == false, 
 			$tdIsCombination: administeredVaccine.isCombinationVaccine())
 		$tdother : TargetDose(this != $td, associatedTargetSeries == $td.associatedTargetSeries, administrationDate == $td.administrationDate, hasBeenEvaluated == true, status == DoseStatus.VALID, 
-			vaccineComponent.isUnspecifiedFormulation() == false, $tdOtherIsCombination : administeredVaccine.isCombinationVaccine())
+			vaccineComponent.isUnspecifiedFormulation() == false, isDuplicateShotSameDayCheckCompleted() == false || $td.isDuplicateShotSameDayCheckCompleted() == false, 
+			$tdOtherIsCombination : administeredVaccine.isCombinationVaccine())
 		eval($tdIsCombination == true && $tdOtherIsCombination == true || $tdIsCombination == false && $tdOtherIsCombination == false)
 	then
 		String _RULENAME = kcontext.rule.name;
@@ -79,14 +80,17 @@ rule "Duplicate Shots/Same Day Pneumococcal Rule # (-1): If PCV and PPSV for adu
 	salience 5
 	when
 		$td : TargetDose(status == DoseStatus.PRIMARY_SHOT_DETERMINATION_IN_PROCESS, associatedTargetSeries.vaccineGroup == "VACCINE_GROUP_CONCEPT.750", administeredVaccine.cdsConceptName in ("ICE133","ICE152"),	doseNumberInSeries >= 6)
-		$tdother : 	TargetDose(status == DoseStatus.EVALUATION_NOT_STARTED, associatedTargetSeries.vaccineGroup == "VACCINE_GROUP_CONCEPT.750", administeredVaccine.cdsConceptName in ("ICE33","ICE109"), administrationDate == $td.administrationDate)
+		$tdother : 	TargetDose(status == DoseStatus.EVALUATION_NOT_STARTED, associatedTargetSeries.vaccineGroup == "VACCINE_GROUP_CONCEPT.750", administeredVaccine.cdsConceptName in ("ICE33","ICE109"), administrationDate == $td.administrationDate,
+			isDuplicateShotSameDayEvaluationOrderCompleted() == false || $td.isDuplicateShotSameDayEvaluationOrderCompleted() == false)
 	then
 		String _RULENAME = drools.getRule().getName();
 		modify($td) {
-			setStatus(DoseStatus.EVALUATION_NOT_STARTED);
+			setStatus(DoseStatus.EVALUATION_NOT_STARTED),
+			setDuplicateShotSameDayEvaluationOrderCompleted(true);
 		}
 		modify($tdother) {
-			setStatus(DoseStatus.PRIMARY_SHOT_DETERMINATION_IN_PROCESS);
+			setStatus(DoseStatus.PRIMARY_SHOT_DETERMINATION_IN_PROCESS),
+			setDuplicateShotSameDayEvaluationOrderCompleted(true);
 		}
 		ICELogicHelper.logDRLDebugMessage(_RULENAME, "td modified to EVALUATION_NOT_STARTED status" + $td " ; tdother modified to PRIMARY_SHOT_DETERMINATION_IN_PROCESS " + $tdother + " in TargetSeries " + $td.associatedTargetSeries);
 end
@@ -101,10 +105,17 @@ rule "Duplicate Shots/Same Day Pneumococcal Rule # (-1.5): If PCV and PPSV for t
 	salience 5
 	when
 		$td : TargetDose(hasBeenEvaluated == false, status == DoseStatus.PRIMARY_SHOT_DETERMINATION_IN_PROCESS, associatedTargetSeries.vaccineGroup == "VACCINE_GROUP_CONCEPT.750", administeredVaccine.cdsConceptName in ("ICE33", "ICE109"), doseNumberInSeries >= 6)
-		$tdother : 	TargetDose(status == DoseStatus.EVALUATION_NOT_STARTED, associatedTargetSeries == $td.associatedTargetSeries, administeredVaccine.cdsConceptName in ("ICE133","ICE152"), administrationDate == $td.administrationDate)			
+		$tdother : 	TargetDose(status == DoseStatus.EVALUATION_NOT_STARTED, associatedTargetSeries == $td.associatedTargetSeries, administeredVaccine.cdsConceptName in ("ICE133","ICE152"), administrationDate == $td.administrationDate,
+			isDuplicateShotSameDayEvaluationOrderCompleted() == false || $td.isDuplicateShotSameDayEvaluationOrderCompleted() == false)			
 	then
 		String _RULENAME = kcontext.rule.name;
 		// Don't do anything
+		modify($td) {
+			setDuplicateShotSameDayEvaluationOrderCompleted(true);
+		}
+		modify($tdother) {
+			setDuplicateShotSameDayEvaluationOrderCompleted(true);
+		}
 		ICELogicHelper.logDRLDebugMessage(_RULENAME, $td + "; " + $tdother + " in TargetSeries " + $td.associatedTargetSeries);		
 end
 
@@ -119,14 +130,17 @@ rule "Duplicate Shots/Same Day Pneumococcal Rule # (-2): If PCV and PCV NOS for 
 	salience 5
 	when
 		$td : TargetDose(status == DoseStatus.PRIMARY_SHOT_DETERMINATION_IN_PROCESS, associatedTargetSeries.vaccineGroup == "VACCINE_GROUP_CONCEPT.750", administeredVaccine.cdsConceptName == "ICE152", doseNumberInSeries >= 6)
-		$tdother : 	TargetDose(status == DoseStatus.EVALUATION_NOT_STARTED, associatedTargetSeries == $td.associatedTargetSeries, administeredVaccine.cdsConceptName == "ICE133", administrationDate == $td.administrationDate)
+		$tdother : 	TargetDose(status == DoseStatus.EVALUATION_NOT_STARTED, associatedTargetSeries == $td.associatedTargetSeries, administeredVaccine.cdsConceptName == "ICE133", administrationDate == $td.administrationDate,
+			isDuplicateShotSameDayEvaluationOrderCompleted() == false || $td.isDuplicateShotSameDayEvaluationOrderCompleted() == false)
 	then
 		String _RULENAME = drools.getRule().getName();
 		modify($td) {
-			setStatus(DoseStatus.EVALUATION_NOT_STARTED);
+			setStatus(DoseStatus.EVALUATION_NOT_STARTED),
+			setDuplicateShotSameDayEvaluationOrderCompleted(true);
 		}
 		modify($tdother) {
-			setStatus(DoseStatus.PRIMARY_SHOT_DETERMINATION_IN_PROCESS);
+			setStatus(DoseStatus.PRIMARY_SHOT_DETERMINATION_IN_PROCESS),
+			setDuplicateShotSameDayEvaluationOrderCompleted(true);
 		}
 		ICELogicHelper.logDRLDebugMessage(_RULENAME, "td modified to EVALUATION_NOT_STARTED status" + $td " ; tdother modified to PRIMARY_SHOT_DETERMINATION_IN_PROCESS " + $tdother + " in TargetSeries " + $td.associatedTargetSeries);
 end
@@ -139,14 +153,17 @@ rule "Duplicate Shots/Same Day Pneumococcal Rule # (-3): If PPSV and PPSV NOS fo
 	salience 5
 	when
 		$td : TargetDose(status == DoseStatus.PRIMARY_SHOT_DETERMINATION_IN_PROCESS, associatedTargetSeries.vaccineGroup == "VACCINE_GROUP_CONCEPT.750", administeredVaccine.cdsConceptName == "ICE109", doseNumberInSeries >= 6)
-		$tdother : 	TargetDose(status == DoseStatus.EVALUATION_NOT_STARTED, associatedTargetSeries == $td.associatedTargetSeries, administeredVaccine.cdsConceptName == "ICE33", administrationDate == $td.administrationDate)
+		$tdother : 	TargetDose(status == DoseStatus.EVALUATION_NOT_STARTED, associatedTargetSeries == $td.associatedTargetSeries, administeredVaccine.cdsConceptName == "ICE33", administrationDate == $td.administrationDate,
+			isDuplicateShotSameDayEvaluationOrderCompleted() == false || $td.isDuplicateShotSameDayEvaluationOrderCompleted() == false)
 	then
 		String _RULENAME = drools.getRule().getName();
 		modify($td) {
-			setStatus(DoseStatus.EVALUATION_NOT_STARTED);
+			setStatus(DoseStatus.EVALUATION_NOT_STARTED),
+			setDuplicateShotSameDayEvaluationOrderCompleted(true);
 		}
 		modify($tdother) {
-			setStatus(DoseStatus.PRIMARY_SHOT_DETERMINATION_IN_PROCESS);
+			setStatus(DoseStatus.PRIMARY_SHOT_DETERMINATION_IN_PROCESS),
+			setDuplicateShotSameDayEvaluationOrderCompleted(true);
 		}
 		ICELogicHelper.logDRLDebugMessage(_RULENAME, "td modified to EVALUATION_NOT_STARTED status" + $td " ; tdother modified to PRIMARY_SHOT_DETERMINATION_IN_PROCESS " + $tdother + " in TargetSeries " + $td.associatedTargetSeries);
 end
@@ -163,15 +180,18 @@ rule "Duplicate Shots/Same Day Pneumococcal Rule #2: If PCV13 and PCV7 and shot 
 	salience 10
 	when
 		$td: TargetDose(associatedTargetSeries.vaccineGroup == "VACCINE_GROUP_CONCEPT.750", hasBeenEvaluated == true, status == DoseStatus.VALID, administeredVaccine.cdsConceptName == "ICE133", administrationDate >= "01-Jun-2010")
-		$tdother : TargetDose(this != $td, associatedTargetSeries == $td.associatedTargetSeries, administrationDate == $td.administrationDate, status == DoseStatus.VALID, administeredVaccine.cdsConceptName == "ICE100")
+		$tdother : TargetDose(this != $td, associatedTargetSeries == $td.associatedTargetSeries, administrationDate == $td.administrationDate, status == DoseStatus.VALID, administeredVaccine.cdsConceptName == "ICE100",
+			isDuplicateShotSameDayCheckCompleted() == false || $td.isDuplicateShotSameDayCheckCompleted() == false)
 	then
 		String _RULENAME = kcontext.rule.name;
 		modify($tdother) {
 			setStatus(DoseStatus.INVALID),
+			setDuplicateShotSameDayCheckCompleted(true),
 			addInvalidReason(BaseDataEvaluationReason._DUPLICATE_SAME_DAY_REASON.getCdsListItemName());
 		}
 		modify($td) {
 			setStatus(DoseStatus.VALID),
+			setDuplicateShotSameDayCheckCompleted(true),
 			removeAllEvaluationReasonsFromAllReasonSets();
 		}
 		ICELogicHelper.logDRLDebugMessage(_RULENAME, $tdother + " in TargetSeries " + $td.associatedTargetSeries);
@@ -186,15 +206,18 @@ rule "Duplicate Shots/Same Day Pneumococcal Rule #3: If PCV13 and PCV7 and shot 
 	salience 10
 	when
 		$td: TargetDose(associatedTargetSeries.vaccineGroup == "VACCINE_GROUP_CONCEPT.750", hasBeenEvaluated == true, status == DoseStatus.VALID, administeredVaccine.cdsConceptName == "ICE133", administrationDate < "01-Jun-2010")
-		$tdother : TargetDose(this != $td, associatedTargetSeries == $td.associatedTargetSeries, administrationDate == $td.administrationDate, administeredVaccine.cdsConceptName == "ICE100", status == DoseStatus.VALID)
+		$tdother : TargetDose(this != $td, associatedTargetSeries == $td.associatedTargetSeries, administrationDate == $td.administrationDate, administeredVaccine.cdsConceptName == "ICE100", status == DoseStatus.VALID,
+			isDuplicateShotSameDayCheckCompleted() == false || $td.isDuplicateShotSameDayCheckCompleted() == false)
 	then
 		String _RULENAME = kcontext.rule.name;
 		modify($td) {
 			setStatus(DoseStatus.INVALID),
+			setDuplicateShotSameDayCheckCompleted(true),
 			addInvalidReason(BaseDataEvaluationReason._DUPLICATE_SAME_DAY_REASON.getCdsListItemName());
 		}
 		modify($tdother) {
 			setStatus(DoseStatus.VALID),
+			setDuplicateShotSameDayCheckCompleted(true),
 			removeAllEvaluationReasonsFromAllReasonSets();
 		}
 		ICELogicHelper.logDRLDebugMessage(_RULENAME, $tdother + " in TargetSeries " + $td.associatedTargetSeries);
