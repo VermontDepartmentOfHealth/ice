@@ -74,8 +74,8 @@ public class PayloadHelper {
 		this.backingSchedule = pS;
 	}
 	
-	
-	public void OutputNestedImmEvaluationResult(KnowledgeHelper k, java.util.HashMap pNamedObjects, EvalTime evalTime, String focalPersonId, SubstanceAdministrationEvent sae, String vg, TargetDose d) {
+
+	public void OutputNestedImmEvaluationResult(KnowledgeHelper k, java.util.HashMap pNamedObjects, EvalTime evalTime, String focalPersonId, String cdsSource, SubstanceAdministrationEvent sae, String vg, TargetDose d) {
 
 		String _METHODNAME = "OutputNestedImmEvaluationResult: ";
 		if (k == null || pNamedObjects == null || evalTime == null || sae == null || d == null) {
@@ -90,15 +90,25 @@ public class PayloadHelper {
 			logger.debug(str);
 		}
 		String conceptTargetId = sae.getId();
-
-		// SubstanceAdministrationEvent
+		
+		// Embedded SubstanceAdministrationEvent
 		SubstanceAdministrationEvent lSAE = new SubstanceAdministrationEvent();
 		String uniqueSarIdValue = ICELogicHelper.generateUniqueString();
 		lSAE.setId(uniqueSarIdValue);
 		String[] subsAdmEvtTemplateArr = { "2.16.840.1.113883.3.795.11.9.1.1" };
 		lSAE.setTemplateId(subsAdmEvtTemplateArr);
 		lSAE.setEvaluatedPersonId(focalPersonId); 
-		lSAE.setSubjectIsFocalPerson(true); 
+		lSAE.setSubjectIsFocalPerson(true);
+
+		// Record Substance AdministrationEvent CDS System Data Source
+		if (cdsSource != null &&  cdsSource.isEmpty() == false) {
+			CD cdsDataSource = new CD();
+			cdsDataSource.setCodeSystem("2.16.840.1.113883.3.795.5.4.12.1.2");
+			cdsDataSource.setCodeSystemName("org.cdsframework source");
+			cdsDataSource.setCode(cdsSource);
+			lSAE.setDataSourceType(cdsDataSource);
+		}
+		
 		// Substance Proposal General Purpose
 		CD subsAdmGeneralPurposeCD = new CD();
 		subsAdmGeneralPurposeCD.setCodeSystem("2.16.840.1.113883.6.5");
@@ -220,7 +230,7 @@ public class PayloadHelper {
 		// This is a nested clinical statement
 		childObs.setClinicalStatementToBeRoot(false);
 		childObs.setToBeReturned(true);
-		// k.insert(childObs);
+		/////// k.insert(childObs);
 		k.insert(childObs);
 		pNamedObjects.put("childObs" + nestedIdValue, childObs);
 
@@ -233,12 +243,12 @@ public class PayloadHelper {
 		relCodeSO.setCode("PERT");
 		relCodeSO.setDisplayName("has pertinent information");
 		rel.setTargetRelationshipToSource(relCodeSO);
-		// k.insert(relO);
+		/////// k.insert(relO);
 		k.insert(relO);
 		pNamedObjects.put("rel" + nestedIdValue, relO);
 	}
 
-	public void OutputNestedImmEvaluationNotSupported(KnowledgeHelper k, java.util.HashMap pNamedObjects, EvalTime evalTime, String focalPersonId, SubstanceAdministrationEvent sae, String vg) {
+	public void OutputNestedImmEvaluationNotSupported(KnowledgeHelper k, java.util.HashMap pNamedObjects, EvalTime evalTime, String focalPersonId, String cdsSource, SubstanceAdministrationEvent sae, String vg) {
 
 		String _METHODNAME = "OutputNestedImmEvaluationNotSupported: ";
 		if (k == null || pNamedObjects == null || evalTime == null || sae == null || vg == null) {
@@ -260,7 +270,17 @@ public class PayloadHelper {
 		String[] subsAdmEvtTemplateArr = { "2.16.840.1.113883.3.795.11.9.1.1" };
 		lSAE.setTemplateId(subsAdmEvtTemplateArr);
 		lSAE.setEvaluatedPersonId(focalPersonId); 
-		lSAE.setSubjectIsFocalPerson(true); 
+		lSAE.setSubjectIsFocalPerson(true);
+
+		// Record Substance AdministrationEvent CDS System Data Source
+		if (cdsSource != null &&  cdsSource.isEmpty() == false) {
+			CD cdsDataSource = new CD();
+			cdsDataSource.setCodeSystem("2.16.840.1.113883.3.795.5.4.12.1.2");
+			cdsDataSource.setCodeSystemName("org.cdsframework source");
+			cdsDataSource.setCode(cdsSource);
+			lSAE.setDataSourceType(cdsDataSource);
+		}
+
 		// Substance Proposal General Purpose
 		CD subsAdmGeneralPurposeCD = new CD();
 		subsAdmGeneralPurposeCD.setCodeSystem("2.16.840.1.113883.6.5");
@@ -280,7 +300,7 @@ public class PayloadHelper {
 		// This is a nested clinical statement
 		lSAE.setClinicalStatementToBeRoot(false);
 		lSAE.setToBeReturned(true);
-		// k.insert(lSAE);
+		/////// k.insert(lSAE);
 		k.insert(lSAE);
 		pNamedObjects.put("lSAE" + uniqueSarIdValue, lSAE);
 
@@ -293,7 +313,7 @@ public class PayloadHelper {
 		relCodeSR.setCode("PERT");
 		relCodeSR.setDisplayName("has pertinent information");
 		rel.setTargetRelationshipToSource(relCodeSR);
-		// k.insert(rel);
+		/////// k.insert(rel);
 		k.insert(rel);
 		pNamedObjects.put("rel" + uniqueSarIdValue, rel);
 
@@ -333,7 +353,7 @@ public class PayloadHelper {
 		// This is a nested clinical statement
 		childObs.setClinicalStatementToBeRoot(false);
 		childObs.setToBeReturned(true);
-		// k.insert(childObs);
+		/////// k.insert(childObs);
 		k.insert(childObs);
 		pNamedObjects.put("childObs" + nestedIdValue, childObs);
 
@@ -346,7 +366,7 @@ public class PayloadHelper {
 		relCodeSO.setCode("PERT");
 		relCodeSO.setDisplayName("has pertinent information");
 		rel.setTargetRelationshipToSource(relCodeSO);
-		// k.insert(relO);
+		/////// k.insert(relO);
 		k.insert(relO);
 		pNamedObjects.put("rel" + nestedIdValue, relO);
 	}
@@ -378,7 +398,7 @@ public class PayloadHelper {
 		       </relatedClinicalStatement>
 		   </substanceAdministrationProposal>
 	 */
-	public void OutputRootImmRecommendationSubstanceAdministrationProposal(KnowledgeHelper drools, java.util.HashMap pNamedObjects, String focalPersonId, TargetSeries ts, boolean outputEarliestOverdue) 
+	public void OutputRootImmRecommendationSubstanceAdministrationProposal(KnowledgeHelper drools, java.util.HashMap pNamedObjects, String focalPersonId, String cdsSource, TargetSeries ts, boolean outputEarliestOverdue, boolean outputSupplementalText) 
 		throws ImproperUsageException, InconsistentConfigurationException {
 
 		String _METHODNAME = "OutputRootImmRecommendationSubstanceAdministrationProposal: ";
@@ -395,7 +415,17 @@ public class PayloadHelper {
 		String[] subsAdmPropTemplateArr = { "2.16.840.1.113883.3.795.11.9.3.1" };
 		sap.setTemplateId(subsAdmPropTemplateArr);
 		sap.setEvaluatedPersonId(focalPersonId); 
-		sap.setSubjectIsFocalPerson(true); 
+		sap.setSubjectIsFocalPerson(true);
+		
+		// Substance Administration Proposal CDS System Data Source
+		if (cdsSource != null && ! cdsSource.isEmpty()) {
+			CD cdsDataSource = new CD();
+			cdsDataSource.setCodeSystem("2.16.840.1.113883.3.795.5.4.12.1.2");
+			cdsDataSource.setCodeSystemName("org.cdsframework source");
+			cdsDataSource.setCode(cdsSource);
+			sap.setDataSourceType(cdsDataSource);
+		}
+		
 		// Substance Proposal General Purpose
 		CD subsAdmGeneralPurposeCD = new CD();
 		subsAdmGeneralPurposeCD.setCodeSystem("2.16.840.1.113883.6.5");
@@ -494,9 +524,19 @@ public class PayloadHelper {
 			for (Recommendation rec : recs) {
 				String recommendationReasonCode = rec.getRecommendationReason();
 				if (recommendationReasonCode != null) {
-					CD localCDInterp = getLocalCodeForRecommendationReason(recommendationReasonCode, this.backingSchedule);
-					if (localCDInterp != null && rec.getRecommendationStatus() == rs && ! interpretations.contains(localCDInterp))
-						interpretations.add(localCDInterp);
+					boolean lSupplementalTextFound = false;
+					if (rec.getRecommendationSupplementalText() != null && recommendationReasonCode.equals(BaseDataRecommendationReason._SUPPLEMENTAL_TEXT.getCdsListItemName())) {
+						lSupplementalTextFound = true;
+					}
+					if (outputSupplementalText == true || (outputSupplementalText == false && lSupplementalTextFound == false)) {
+						CD localCDInterp = getLocalCodeForRecommendationReason(recommendationReasonCode, this.backingSchedule);
+						if (localCDInterp != null && rec.getRecommendationStatus() == rs && ! interpretations.contains(localCDInterp)) {
+							if (lSupplementalTextFound && outputSupplementalText) {
+								localCDInterp.setOriginalText(rec.getRecommendationSupplementalText());
+							}	
+							interpretations.add(localCDInterp);
+						}
+					}
 				}
 			}
 			if (interpretations.size() > 0)
@@ -521,7 +561,7 @@ public class PayloadHelper {
 	}
 
 	
-	public void outputOtherImmRecommendationSubstanceAdministrationProposal(KnowledgeHelper drools, java.util.HashMap pNamedObjects, String focalPersonId) 
+	public void outputOtherImmRecommendationSubstanceAdministrationProposal(KnowledgeHelper drools, java.util.HashMap pNamedObjects, String focalPersonId, String cdsSource) 
 		throws ImproperUsageException, InconsistentConfigurationException {
 
 		String _METHODNAME = "OutputRootImmRecommendationSubstanceAdministrationProposal: ";
@@ -532,13 +572,24 @@ public class PayloadHelper {
 			throw new ImproperUsageException(lErrStr);
 		}
 		SubstanceAdministrationProposal sap = new SubstanceAdministrationProposal();
-		// String uniqueSarIdValue = ICELogicHelper.generateUniqueString();
+
 		String uniqueSarIdValue = ICELogicHelper.generateUniqueString();
 		sap.setId(uniqueSarIdValue);
 		String[] subsAdmPropTemplateArr = { "2.16.840.1.113883.3.795.11.9.3.1" };
 		sap.setTemplateId(subsAdmPropTemplateArr);
 		sap.setEvaluatedPersonId(focalPersonId); 
-		sap.setSubjectIsFocalPerson(true); 
+		sap.setSubjectIsFocalPerson(true);
+
+		// Substance Administration Proposal CDS System Data Source
+		if (cdsSource != null && ! cdsSource.isEmpty()) {
+			CD cdsDataSource = new CD();
+			cdsDataSource.setCodeSystem("2.16.840.1.113883.3.795.5.4.12.1.2");
+			cdsDataSource.setCodeSystemName("CAT CDS Source");
+			cdsDataSource.setCode(cdsSource);
+			cdsDataSource.setDisplayName("ICE Version");
+			sap.setDataSourceType(cdsDataSource);
+		}
+
 		// Substance Proposal General Purpose
 		CD subsAdmGeneralPurposeCD = new CD();
 		subsAdmGeneralPurposeCD.setCodeSystem("2.16.840.1.113883.6.5");
@@ -601,54 +652,6 @@ public class PayloadHelper {
 		pNamedObjects.put("rel" + nestedIdValue, rel);
 	}
 	
-	
-	public void OutputEmbeddedDosesRemainingInSubstanceAdministrationProposal(KnowledgeHelper drools, java.util.HashMap pNamedObjects, String focalPersonId, String pDosesRemaining, SubstanceAdministrationProposal pSAP) 
-		throws ImproperUsageException {
-		
-		String _METHODNAME = "OutputEmbeddedDosesRemainingInSubstanceAdministrationProposal: ";
-		if (drools == null || pNamedObjects == null|| pSAP == null || pDosesRemaining == null) {
-			String lErrStr = "Unable to output doses remaining: one or more parameters not specified";
-			logger.error(_METHODNAME + lErrStr);
-			throw new ImproperUsageException(lErrStr);
-		}
-		
-		// Now create the nested observation result
-		String nestedIdValue = ICELogicHelper.generateUniqueString();
-		// Observation
-		ObservationResult childObs = new ObservationResult();
-		childObs.setId(nestedIdValue);
-		childObs.setEvaluatedPersonId(focalPersonId);
-		childObs.setSubjectIsFocalPerson(true); 
-
-		// Set the Observation Focus - always the vaccine group
-		CD localCD = new CD();
-		localCD.setCodeSystem("2.16.840.1.113883.3.795.12.100.10");
-		localCD.setCode("NUMBER_OF_DOSES_REMAINING");
-		localCD.setDisplayName("Doses Remaining");
-		localCD.setOriginalText("Number of doses remaining in the series, as of the evaluation date");
-		childObs.setObservationFocus(localCD);
-
-		// Observation Value
-		ObservationValue childObsValue = new ObservationValue();
-		childObsValue.setText(pDosesRemaining);
-		childObs.setObservationValue(childObsValue);
-		childObs.setClinicalStatementToBeRoot(false);
-		childObs.setToBeReturned(true);
-		drools.insert(childObs);
-		pNamedObjects.put("childObs" + nestedIdValue, childObs);
-
-		// Therefore, create as a relatedClinicalStatement
-		ClinicalStatementRelationship rel = new ClinicalStatementRelationship();
-		rel.setSourceId(pSAP.getId());
-		rel.setTargetId(nestedIdValue);
-		CD relCodeSR = new CD();
-		relCodeSR.setCodeSystem("2.16.840.1.113883.5.1002");
-		relCodeSR.setCode("RSON");
-		relCodeSR.setDisplayName("has pertaining reason");
-		rel.setTargetRelationshipToSource(relCodeSR);
-		drools.insert(rel);
-		pNamedObjects.put("rel" + nestedIdValue, rel);
-	}
 	
 	/**
 	 * Return local ICE3 Observation Evaluation Focus code for the Vaccine Group
